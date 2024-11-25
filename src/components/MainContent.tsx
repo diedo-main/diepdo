@@ -11,7 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Link2, Hash, Bold, Italic } from "lucide-react";
+import { Link2, Hash, Bold, Italic, Paperclip } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const MainContent = () => {
   const [title, setTitle] = useState("");
@@ -126,24 +132,49 @@ const MainContent = () => {
               className="border-0 text-lg font-medium focus-visible:ring-0 px-0"
             />
             <Textarea
-              placeholder="Write your thoughts..."
+              placeholder="Any thoughts..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[100px] border-0 resize-none focus-visible:ring-0 px-0"
             />
             <div className="flex items-center gap-2 border-t pt-3">
-              <Button variant="ghost" size="icon">
-                <Hash className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Bold className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Italic className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Link2 className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Hash className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add tags</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Bold className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Format text</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Attach files</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Link2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add link</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <div className="ml-auto">
                 <Button onClick={handleSave} className="bg-[#7DD1C1] hover:bg-[#6BC1B1] text-white">
                   Save
