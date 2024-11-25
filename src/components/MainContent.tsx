@@ -1,19 +1,22 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import NoteCard from "./NoteCard";
-import NoteEditor from "./NoteEditor";
 import { useInView } from "react-intersection-observer";
 import { useNotes, type Note } from "@/hooks/useNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Link2, Hash, Bold, Italic } from "lucide-react";
 
 const MainContent = () => {
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | undefined>();
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [selectedTags, setSelectedTags] = useState<{ id: string; name: string; }[]>([]);
   const { toast } = useToast();
   const { ref, inView } = useInView();
   const { session, loading: authLoading } = useAuth();
@@ -47,17 +50,25 @@ const MainContent = () => {
     }
   }, [inView, notesQuery.hasNextPage, notesQuery.isFetchingNextPage, notesQuery.fetchNextPage]);
 
-  const handleSave = async (note: Note) => {
+  const handleSave = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "Title is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      if (note.id) {
-        await updateNote.mutateAsync(note);
-        toast({ title: "Note updated successfully" });
-      } else {
-        await createNote.mutateAsync(note);
-        toast({ title: "Note created successfully" });
-      }
-      setIsEditorOpen(false);
-      setEditingNote(undefined);
+      await createNote.mutateAsync({
+        title: title.trim(),
+        content: content.trim(),
+        tags: selectedTags,
+      });
+      toast({ title: "Note created successfully" });
+      setTitle("");
+      setContent("");
+      setSelectedTags([]);
     } catch (error) {
       console.error("Error saving note:", error);
       toast({
@@ -68,8 +79,9 @@ const MainContent = () => {
   };
 
   const handleEdit = (note: Note) => {
-    setEditingNote(note);
-    setIsEditorOpen(true);
+    setTitle(note.title);
+    setContent(note.content);
+    setSelectedTags(note.tags);
   };
 
   const handleDelete = async (noteId: string) => {
@@ -104,19 +116,44 @@ const MainContent = () => {
   return (
     <div className="p-8 animate-fade-in">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-memos-dark">My Notes</h1>
-          <Button
-            onClick={() => {
-              setEditingNote(undefined);
-              setIsEditorOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Note
-          </Button>
+        {/* Note Creation Form */}
+        <div className="mb-8 bg-white rounded-lg shadow-sm border p-4">
+          <div className="space-y-4">
+            <Input
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="border-0 text-lg font-medium focus-visible:ring-0 px-0"
+            />
+            <Textarea
+              placeholder="Write your thoughts..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-[100px] border-0 resize-none focus-visible:ring-0 px-0"
+            />
+            <div className="flex items-center gap-2 border-t pt-3">
+              <Button variant="ghost" size="icon">
+                <Hash className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Italic className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Link2 className="h-4 w-4" />
+              </Button>
+              <div className="ml-auto">
+                <Button onClick={handleSave} className="bg-[#7DD1C1] hover:bg-[#6BC1B1] text-white">
+                  Save
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Notes List */}
         {notesQuery.status === "pending" ? (
           <div className="text-center">Loading notes...</div>
         ) : notesQuery.status === "error" ? (
@@ -141,17 +178,6 @@ const MainContent = () => {
             )}
           </>
         )}
-
-        <NoteEditor
-          note={editingNote}
-          isOpen={isEditorOpen}
-          onClose={() => {
-            setIsEditorOpen(false);
-            setEditingNote(undefined);
-          }}
-          onSave={handleSave}
-          availableTags={availableTags}
-        />
       </div>
     </div>
   );
