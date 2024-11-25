@@ -7,17 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Link2, Hash, Bold, Italic, Paperclip } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import NoteCreationForm from "./NoteCreationForm";
 
 const MainContent = () => {
   const [title, setTitle] = useState("");
@@ -122,67 +112,13 @@ const MainContent = () => {
   return (
     <div className="p-8 animate-fade-in">
       <div className="max-w-7xl mx-auto">
-        {/* Note Creation Form */}
-        <div className="mb-8 bg-white rounded-lg shadow-sm border p-4">
-          <div className="space-y-4">
-            <Input
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="border-0 text-lg font-medium focus-visible:ring-0 px-0"
-            />
-            <Textarea
-              placeholder="Any thoughts..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-[100px] border-0 resize-none focus-visible:ring-0 px-0"
-            />
-            <div className="flex items-center gap-2 border-t pt-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Hash className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add tags</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Bold className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Format text</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Attach files</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Link2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add link</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <div className="ml-auto">
-                <Button onClick={handleSave} className="bg-[#7DD1C1] hover:bg-[#6BC1B1] text-white">
-                  Save
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <NoteCreationForm
+          title={title}
+          content={content}
+          onTitleChange={setTitle}
+          onContentChange={setContent}
+          onSave={handleSave}
+        />
 
         {/* Notes List */}
         {notesQuery.status === "pending" ? (
