@@ -4,13 +4,6 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypeHighlight from "rehype-highlight";
-import "katex/dist/katex.min.css";
-import "highlight.js/styles/github.css";
 
 interface Tag {
   id: string;
@@ -73,14 +66,7 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
-        <div className="prose prose-sm max-w-none dark:prose-invert">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeKatex, rehypeHighlight]}
-          >
-            {note.content}
-          </ReactMarkdown>
-        </div>
+        <p className="text-sm text-gray-600 whitespace-pre-wrap">{note.content}</p>
       </CardContent>
       <CardFooter>
         <div className="flex flex-wrap gap-2">
