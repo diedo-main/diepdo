@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import NoteCard from "./NoteCard";
 import { useInView } from "react-intersection-observer";
 import { useNotes } from "@/hooks/useNotes";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,13 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import NoteCreationForm from "./NoteCreationForm";
-
-interface UpdateNoteInput {
-  id: string;
-  title: string;
-  content: string;
-  tags: { id: string; name: string; }[];
-}
+import NoteList from "./NoteList";
 
 const MainContent = () => {
   const [content, setContent] = useState("");
@@ -23,7 +16,6 @@ const MainContent = () => {
   const { toast } = useToast();
   const { ref, inView } = useInView();
   const { session, loading: authLoading } = useAuth();
-
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; }[]>([]);
   const { notesQuery, createNote, updateNote, deleteNote } = useNotes();
 
@@ -70,9 +62,9 @@ const MainContent = () => {
     if (inView && notesQuery.hasNextPage && !notesQuery.isFetchingNextPage) {
       notesQuery.fetchNextPage();
     }
-  }, [inView, notesQuery.hasNextPage, notesQuery.isFetchingNextPage, notesQuery.fetchNextPage]);
+  }, [inView, notesQuery]);
 
-  const extractTitleFromContent = (content: string): { title: string; content: string } => {
+  const extractTitleFromContent = (content: string) => {
     const lines = content.split('\n');
     let title = "Untitled";
     let remainingContent = content;
@@ -175,7 +167,7 @@ const MainContent = () => {
 
   return (
     <div className="p-8 animate-fade-in">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <NoteCreationForm
           content={content}
           onContentChange={setContent}
@@ -188,26 +180,18 @@ const MainContent = () => {
           }}
         />
 
-        {notesQuery.status === "pending" ? (
-          <div className="text-center">Loading notes...</div>
-        ) : notesQuery.status === "error" ? (
+        {notesQuery.status === "error" ? (
           <div className="text-center text-red-500">
             Error loading notes: {notesQuery.error instanceof Error ? notesQuery.error.message : "Unknown error"}
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {notesQuery.data.pages.map((page) => (
-                page.notes.map((note) => (
-                  <NoteCard
-                    key={note.id}
-                    note={note}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))
-              ))}
-            </div>
+            <NoteList
+              notes={notesQuery.data?.pages.flatMap(page => page.notes) || []}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              isLoading={notesQuery.status === "pending"}
+            />
             <div ref={ref} className="h-8" />
             {notesQuery.isFetchingNextPage && (
               <div className="text-center mt-4">Loading more notes...</div>
