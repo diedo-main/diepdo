@@ -16,23 +16,25 @@ interface MarkdownEditorProps {
 
 const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorProps) => {
   return (
-    <div className="relative">
+    <div className="relative space-y-4">
       <Textarea
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[100px] border-0 resize-none focus-visible:ring-0 px-0 font-mono"
+        className="min-h-[200px] border resize-none focus-visible:ring-1 px-3 font-mono"
       />
-      {value && (
-        <div className="mt-2 p-4 border rounded-lg bg-gray-50 prose prose-sm max-w-none">
+      <div className="p-4 border rounded-lg bg-gray-50 prose prose-sm max-w-none min-h-[200px]">
+        {value ? (
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeKatex, rehypeHighlight]}
           >
             {value}
           </ReactMarkdown>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-400 italic">Preview will appear here...</p>
+        )}
+      </div>
     </div>
   );
 };
