@@ -13,6 +13,7 @@ const MainContent = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<{ id: string; name: string; }[]>([]);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const { toast } = useToast();
   const { ref, inView } = useInView();
   const { session, loading: authLoading } = useAuth();
@@ -56,25 +57,39 @@ const MainContent = () => {
     }
 
     try {
-      await createNote.mutateAsync({
-        title: title.trim(),
-        content: content.trim(),
-        tags: selectedTags,
-      });
-      toast({ title: "Note created successfully" });
+      if (editingNoteId) {
+        await updateNote.mutateAsync({
+          id: editingNoteId,
+          title: title.trim(),
+          content: content.trim(),
+          tags: selectedTags,
+        });
+        toast({ title: "Note updated successfully" });
+      } else {
+        await createNote.mutateAsync({
+          title: title.trim(),
+          content: content.trim(),
+          tags: selectedTags,
+        });
+        toast({ title: "Note created successfully" });
+      }
+      
+      // Reset form
       setTitle("");
       setContent("");
       setSelectedTags([]);
+      setEditingNoteId(null);
     } catch (error) {
       console.error("Error saving note:", error);
       toast({
-        title: "Failed to save note",
+        title: `Failed to ${editingNoteId ? 'update' : 'save'} note`,
         variant: "destructive",
       });
     }
   };
 
   const handleEdit = (note: Note) => {
+    setEditingNoteId(note.id);
     setTitle(note.title);
     setContent(note.content);
     setSelectedTags(note.tags);
@@ -118,6 +133,13 @@ const MainContent = () => {
           onTitleChange={setTitle}
           onContentChange={setContent}
           onSave={handleSave}
+          isEditing={!!editingNoteId}
+          onCancel={() => {
+            setTitle("");
+            setContent("");
+            setSelectedTags([]);
+            setEditingNoteId(null);
+          }}
         />
 
         {/* Notes List */}
