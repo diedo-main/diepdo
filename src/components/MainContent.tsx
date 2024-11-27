@@ -29,23 +29,42 @@ const MainContent = () => {
 
   useEffect(() => {
     const fetchTags = async () => {
-      if (!session?.user) return;
+      try {
+        if (!session?.user) {
+          console.log("No active session, skipping tag fetch");
+          return;
+        }
 
-      const { data: tags, error } = await supabase
-        .from("tags")
-        .select("id, name")
-        .eq('user_id', session.user.id);
-      
-      if (error) {
-        console.error("Error fetching tags:", error);
-        return;
+        console.log("Fetching tags for user:", session.user.id);
+        const { data: tags, error } = await supabase
+          .from("tags")
+          .select("id, name")
+          .eq('user_id', session.user.id);
+        
+        if (error) {
+          console.error("Error fetching tags:", error);
+          toast({
+            title: "Error fetching tags",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log("Tags fetched successfully:", tags);
+        setAvailableTags(tags || []);
+      } catch (error) {
+        console.error("Unexpected error fetching tags:", error);
+        toast({
+          title: "Error fetching tags",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
       }
-
-      setAvailableTags(tags);
     };
 
     fetchTags();
-  }, [session?.user]);
+  }, [session?.user, toast]);
 
   useEffect(() => {
     if (inView && notesQuery.hasNextPage && !notesQuery.isFetchingNextPage) {
@@ -58,7 +77,6 @@ const MainContent = () => {
     let title = "Untitled";
     let remainingContent = content;
 
-    // Look for a line starting with # that's not a markdown heading
     const titleMatch = lines[0].match(/^#([^\s#].+)$/);
     if (titleMatch) {
       title = titleMatch[1].trim();
@@ -69,6 +87,15 @@ const MainContent = () => {
   };
 
   const handleSave = async () => {
+    if (!session?.user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save notes",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { title, content: processedContent } = extractTitleFromContent(content);
 
     if (!processedContent.trim()) {
@@ -97,7 +124,6 @@ const MainContent = () => {
         toast({ title: "Note created successfully" });
       }
       
-      // Reset form
       setContent("");
       setSelectedTags([]);
       setEditingNoteId(null);
@@ -105,6 +131,7 @@ const MainContent = () => {
       console.error("Error saving note:", error);
       toast({
         title: `Failed to ${editingNoteId ? 'update' : 'save'} note`,
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     }
@@ -112,7 +139,6 @@ const MainContent = () => {
 
   const handleEdit = (note: { id: string; title: string; content: string; tags: { id: string; name: string; }[] }) => {
     setEditingNoteId(note.id);
-    // When editing, reconstruct the content with the title
     setContent(`#${note.title}\n${note.content}`);
     setSelectedTags(note.tags);
   };
@@ -125,6 +151,7 @@ const MainContent = () => {
       console.error("Error deleting note:", error);
       toast({
         title: "Failed to delete note",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     }
@@ -161,11 +188,12 @@ const MainContent = () => {
           }}
         />
 
-        {/* Notes List */}
         {notesQuery.status === "pending" ? (
           <div className="text-center">Loading notes...</div>
         ) : notesQuery.status === "error" ? (
-          <div className="text-center text-red-500">Error loading notes</div>
+          <div className="text-center text-red-500">
+            Error loading notes: {notesQuery.error instanceof Error ? notesQuery.error.message : "Unknown error"}
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
