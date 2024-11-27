@@ -52,20 +52,24 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
   const customRenderers: Components = {
     text: ({ children }) => {
       if (typeof children !== 'string') {
-        return children;
+        return <>{children}</>;
       }
 
       const parts = children.split(dateRegex);
       if (parts.length === 1) {
-        return children;
+        return <>{children}</>;
       }
 
-      return parts.map((part, i) => {
-        if (part?.match?.(dateRegex)) {
-          return <DateHighlight key={i}>{part}</DateHighlight>;
-        }
-        return part;
-      });
+      return (
+        <>
+          {parts.map((part, i) => {
+            if (part?.match?.(dateRegex)) {
+              return <DateHighlight key={i}>{part}</DateHighlight>;
+            }
+            return <span key={i}>{part}</span>;
+          })}
+        </>
+      );
     },
   };
 
