@@ -6,18 +6,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import NoteCreationForm from "./NoteCreationForm";
+import NoteCreationSection from "./NoteCreationSection";
 import NoteList from "./NoteList";
+import NoteSearch from "./NoteSearch";
+import { useNoteSearch } from "@/hooks/useNoteSearch";
 
 const MainContent = () => {
-  const [content, setContent] = useState("");
-  const [selectedTags, setSelectedTags] = useState<{ id: string; name: string; }[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const { ref, inView } = useInView();
   const { session, loading: authLoading } = useAuth();
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; }[]>([]);
   const { notesQuery, createNote, updateNote, deleteNote } = useNotes();
+
+  const allNotes = notesQuery.data?.pages.flatMap(page => page.notes) || [];
+  const filteredNotes = useNoteSearch(allNotes, searchQuery);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -64,75 +68,27 @@ const MainContent = () => {
     }
   }, [inView, notesQuery]);
 
-  const extractTitleFromContent = (content: string) => {
-    const lines = content.split('\n');
-    let title = "Untitled";
-    let remainingContent = content;
-
-    const titleMatch = lines[0].match(/^#([^\s#].+)$/);
-    if (titleMatch) {
-      title = titleMatch[1].trim();
-      remainingContent = lines.slice(1).join('\n').trim();
-    }
-
-    return { title, content: remainingContent };
-  };
-
-  const handleSave = async () => {
-    if (!session?.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to save notes",
-        variant: "destructive",
+  const handleSave = async (title: string, content: string, tags: { id: string; name: string; }[]) => {
+    if (editingNoteId) {
+      await updateNote.mutateAsync({
+        id: editingNoteId,
+        title,
+        content,
+        tags,
       });
-      return;
-    }
-
-    const { title, content: processedContent } = extractTitleFromContent(content);
-
-    if (!processedContent.trim()) {
-      toast({
-        title: "Note content is required",
-        variant: "destructive",
+      toast({ title: "Note updated successfully" });
+    } else {
+      await createNote.mutateAsync({
+        title,
+        content,
+        tags,
       });
-      return;
-    }
-
-    try {
-      if (editingNoteId) {
-        await updateNote.mutateAsync({
-          id: editingNoteId,
-          title,
-          content: processedContent,
-          tags: selectedTags,
-        });
-        toast({ title: "Note updated successfully" });
-      } else {
-        await createNote.mutateAsync({
-          title,
-          content: processedContent,
-          tags: selectedTags,
-        });
-        toast({ title: "Note created successfully" });
-      }
-      
-      setContent("");
-      setSelectedTags([]);
-      setEditingNoteId(null);
-    } catch (error) {
-      console.error("Error saving note:", error);
-      toast({
-        title: `Failed to ${editingNoteId ? 'update' : 'save'} note`,
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast({ title: "Note created successfully" });
     }
   };
 
   const handleEdit = (note: { id: string; title: string; content: string; tags: { id: string; name: string; }[] }) => {
     setEditingNoteId(note.id);
-    setContent(`#${note.title}\n${note.content}`);
-    setSelectedTags(note.tags);
   };
 
   const handleDelete = async (noteId: string) => {
@@ -168,16 +124,15 @@ const MainContent = () => {
   return (
     <div className="p-8 animate-fade-in">
       <div className="max-w-5xl mx-auto">
-        <NoteCreationForm
-          content={content}
-          onContentChange={setContent}
+        <NoteCreationSection
           onSave={handleSave}
-          isEditing={!!editingNoteId}
-          onCancel={() => {
-            setContent("");
-            setSelectedTags([]);
-            setEditingNoteId(null);
-          }}
+          editingNoteId={editingNoteId}
+          onCancel={() => setEditingNoteId(null)}
+        />
+
+        <NoteSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
 
         {notesQuery.status === "error" ? (
@@ -187,7 +142,7 @@ const MainContent = () => {
         ) : (
           <>
             <NoteList
-              notes={notesQuery.data?.pages.flatMap(page => page.notes) || []}
+              notes={filteredNotes}
               onEdit={handleEdit}
               onDelete={handleDelete}
               isLoading={notesQuery.status === "pending"}
