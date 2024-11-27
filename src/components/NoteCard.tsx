@@ -12,7 +12,7 @@ import rehypeHighlight from "rehype-highlight";
 import DateHighlight from "./DateHighlight";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github.css";
-import { Components } from "react-markdown/lib/ast-to-react";
+import type { Components } from "react-markdown";
 
 interface Tag {
   id: string;
