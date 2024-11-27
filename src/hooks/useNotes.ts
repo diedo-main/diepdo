@@ -17,6 +17,13 @@ export interface Note {
   tags: Tag[];
 }
 
+export interface UpdateNoteInput {
+  id: string;
+  title: string;
+  content: string;
+  tags: Tag[];
+}
+
 export function useNotes() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
@@ -102,7 +109,7 @@ export function useNotes() {
   });
 
   const updateNote = useMutation({
-    mutationFn: async (note: Note) => {
+    mutationFn: async (note: UpdateNoteInput) => {
       if (!session?.user) throw new Error("Not authenticated");
 
       const { error: noteError } = await supabase

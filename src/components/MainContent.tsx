@@ -63,7 +63,7 @@ const MainContent = () => {
           title: title.trim(),
           content: content.trim(),
           tags: selectedTags,
-        });
+        } as UpdateNoteInput);
         toast({ title: "Note updated successfully" });
       } else {
         await createNote.mutateAsync({
