@@ -12,6 +12,7 @@ import rehypeHighlight from "rehype-highlight";
 import DateHighlight from "./DateHighlight";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github.css";
+import { Components } from "react-markdown/lib/ast-to-react";
 
 interface Tag {
   id: string;
@@ -48,8 +49,12 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
   };
 
   // Custom renderer for text to highlight dates
-  const customRenderers = {
-    text: ({ children }: { children: string }) => {
+  const customRenderers: Components = {
+    text: ({ children }) => {
+      if (typeof children !== 'string') {
+        return children;
+      }
+
       const parts = children.split(dateRegex);
       if (parts.length === 1) {
         return children;
