@@ -21,9 +21,9 @@ const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorProps) =
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[200px] border resize-none focus-visible:ring-1 px-3 font-mono"
+        className="min-h-[200px] resize-none focus-visible:ring-1 px-4 py-3 font-mono text-sm bg-background border-muted"
       />
-      <div className="p-4 border rounded-lg bg-gray-50 prose prose-sm max-w-none min-h-[200px]">
+      <div className="p-4 rounded-lg bg-muted/50 prose prose-sm max-w-none min-h-[200px] border border-muted">
         {value ? (
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
@@ -32,7 +32,7 @@ const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorProps) =
             {value}
           </ReactMarkdown>
         ) : (
-          <p className="text-gray-400 italic">Preview will appear here...</p>
+          <p className="text-muted-foreground italic">Preview will appear here...</p>
         )}
       </div>
     </div>

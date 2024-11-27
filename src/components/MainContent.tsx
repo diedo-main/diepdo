@@ -2,15 +2,21 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import NoteCard from "./NoteCard";
 import { useInView } from "react-intersection-observer";
-import { useNotes, type Note } from "@/hooks/useNotes";
+import { useNotes } from "@/hooks/useNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import NoteCreationForm from "./NoteCreationForm";
 
+interface UpdateNoteInput {
+  id: string;
+  title: string;
+  content: string;
+  tags: { id: string; name: string; }[];
+}
+
 const MainContent = () => {
-  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<{ id: string; name: string; }[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -47,10 +53,27 @@ const MainContent = () => {
     }
   }, [inView, notesQuery.hasNextPage, notesQuery.isFetchingNextPage, notesQuery.fetchNextPage]);
 
+  const extractTitleFromContent = (content: string): { title: string; content: string } => {
+    const lines = content.split('\n');
+    let title = "Untitled";
+    let remainingContent = content;
+
+    // Look for a line starting with # that's not a markdown heading
+    const titleMatch = lines[0].match(/^#([^\s#].+)$/);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+      remainingContent = lines.slice(1).join('\n').trim();
+    }
+
+    return { title, content: remainingContent };
+  };
+
   const handleSave = async () => {
-    if (!title.trim()) {
+    const { title, content: processedContent } = extractTitleFromContent(content);
+
+    if (!processedContent.trim()) {
       toast({
-        title: "Title is required",
+        title: "Note content is required",
         variant: "destructive",
       });
       return;
@@ -60,22 +83,21 @@ const MainContent = () => {
       if (editingNoteId) {
         await updateNote.mutateAsync({
           id: editingNoteId,
-          title: title.trim(),
-          content: content.trim(),
+          title,
+          content: processedContent,
           tags: selectedTags,
-        } as UpdateNoteInput);
+        });
         toast({ title: "Note updated successfully" });
       } else {
         await createNote.mutateAsync({
-          title: title.trim(),
-          content: content.trim(),
+          title,
+          content: processedContent,
           tags: selectedTags,
         });
         toast({ title: "Note created successfully" });
       }
       
       // Reset form
-      setTitle("");
       setContent("");
       setSelectedTags([]);
       setEditingNoteId(null);
@@ -88,10 +110,10 @@ const MainContent = () => {
     }
   };
 
-  const handleEdit = (note: Note) => {
+  const handleEdit = (note: { id: string; title: string; content: string; tags: { id: string; name: string; }[] }) => {
     setEditingNoteId(note.id);
-    setTitle(note.title);
-    setContent(note.content);
+    // When editing, reconstruct the content with the title
+    setContent(`#${note.title}\n${note.content}`);
     setSelectedTags(note.tags);
   };
 
@@ -128,14 +150,11 @@ const MainContent = () => {
     <div className="p-8 animate-fade-in">
       <div className="max-w-7xl mx-auto">
         <NoteCreationForm
-          title={title}
           content={content}
-          onTitleChange={setTitle}
           onContentChange={setContent}
           onSave={handleSave}
           isEditing={!!editingNoteId}
           onCancel={() => {
-            setTitle("");
             setContent("");
             setSelectedTags([]);
             setEditingNoteId(null);
@@ -151,7 +170,7 @@ const MainContent = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {notesQuery.data.pages.map((page) => (
-                page.notes.map((note: Note) => (
+                page.notes.map((note) => (
                   <NoteCard
                     key={note.id}
                     note={note}

@@ -1,11 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import MarkdownEditor from "./MarkdownEditor";
 
 interface NoteCreationFormProps {
-  title: string;
   content: string;
-  onTitleChange: (title: string) => void;
   onContentChange: (content: string) => void;
   onSave: () => void;
   isEditing?: boolean;
@@ -13,36 +10,32 @@ interface NoteCreationFormProps {
 }
 
 const NoteCreationForm = ({
-  title,
   content,
-  onTitleChange,
   onContentChange,
   onSave,
   isEditing = false,
   onCancel,
 }: NoteCreationFormProps) => {
   return (
-    <div className="space-y-4 mb-8">
-      <Input
-        placeholder="Note title"
-        value={title}
-        onChange={(e) => onTitleChange(e.target.value)}
-      />
-      <Textarea
-        placeholder="Note content (supports Markdown)"
-        value={content}
-        onChange={(e) => onContentChange(e.target.value)}
-        className="min-h-[200px]"
-      />
-      <div className="flex gap-2 justify-end">
-        {isEditing && onCancel && (
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
-        <Button onClick={onSave}>
-          {isEditing ? 'Update Note' : 'Create Note'}
-        </Button>
+    <div className="space-y-4 mb-8 animate-fade-in">
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+        <div className="p-6">
+          <MarkdownEditor
+            value={content}
+            onChange={onContentChange}
+            placeholder="Start with # to create a title, then write your note content..."
+          />
+          <div className="flex gap-2 justify-end mt-4">
+            {isEditing && onCancel && (
+              <Button variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button onClick={onSave}>
+              {isEditing ? 'Update Note' : 'Create Note'}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
