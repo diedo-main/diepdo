@@ -1,84 +1,108 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import MarkdownEditor from "./MarkdownEditor";
 import { useToast } from "@/components/ui/use-toast";
-import NoteCreationForm from "./NoteCreationForm";
-import { useAuth } from "@/contexts/AuthContext";
+import { useNotes } from "@/hooks/useNotes";
 
 interface NoteCreationSectionProps {
-  onSave: (title: string, content: string, selectedTags: { id: string; name: string; }[]) => Promise<void>;
+  onSave: (title: string, content: string, tags: { id: string; name: string; }[]) => Promise<void>;
   editingNoteId: string | null;
-  initialContent?: string;
-  initialTags?: { id: string; name: string; }[];
   onCancel: () => void;
 }
 
-const NoteCreationSection = ({
-  onSave,
-  editingNoteId,
-  initialContent = "",
-  initialTags = [],
-  onCancel,
-}: NoteCreationSectionProps) => {
-  const [content, setContent] = useState(initialContent);
-  const [selectedTags, setSelectedTags] = useState(initialTags);
+const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSectionProps) => {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { session } = useAuth();
+  const { notesQuery } = useNotes();
 
-  const extractTitleFromContent = (content: string) => {
-    const lines = content.split('\n');
-    let title = "Untitled";
-    let remainingContent = content;
+  // Effect to populate form when editing
+  useEffect(() => {
+    if (editingNoteId && notesQuery.data) {
+      const noteToEdit = notesQuery.data.pages
+        .flatMap(page => page.notes)
+        .find(note => note.id === editingNoteId);
 
-    const titleMatch = lines[0].match(/^#([^\s#].+)$/);
-    if (titleMatch) {
-      title = titleMatch[1].trim();
-      remainingContent = lines.slice(1).join('\n').trim();
-    }
-
-    return { title, content: remainingContent };
-  };
-
-  const handleSave = async () => {
-    if (!session?.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to save notes",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const { title, content: processedContent } = extractTitleFromContent(content);
-
-    if (!processedContent.trim()) {
-      toast({
-        title: "Note content is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      await onSave(title, processedContent, selectedTags);
+      if (noteToEdit) {
+        console.log("Populating form with note:", noteToEdit);
+        setTitle(noteToEdit.title);
+        setContent(noteToEdit.content || "");
+      }
+    } else {
+      // Reset form when not editing
+      setTitle("");
       setContent("");
-      setSelectedTags([]);
+    }
+  }, [editingNoteId, notesQuery.data]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title.trim()) {
+      toast({
+        title: "Title is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSave(title.trim(), content.trim(), []);
+      if (!editingNoteId) {
+        setTitle("");
+        setContent("");
+      }
+      toast({
+        title: `Note ${editingNoteId ? "updated" : "created"} successfully`,
+      });
     } catch (error) {
       console.error("Error saving note:", error);
       toast({
-        title: `Failed to ${editingNoteId ? 'update' : 'save'} note`,
+        title: `Failed to ${editingNoteId ? "update" : "create"} note`,
         description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <NoteCreationForm
-      content={content}
-      onContentChange={setContent}
-      onSave={handleSave}
-      isEditing={!!editingNoteId}
-      onCancel={onCancel}
-    />
+    <form onSubmit={handleSubmit} className="space-y-4 mb-8">
+      <Input
+        type="text"
+        placeholder="Note title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <MarkdownEditor
+        value={content}
+        onChange={setContent}
+        placeholder="Write your note content here..."
+      />
+      <div className="flex justify-end gap-2">
+        {editingNoteId && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting
+            ? "Saving..."
+            : editingNoteId
+            ? "Update Note"
+            : "Create Note"}
+        </Button>
+      </div>
+    </form>
   );
 };
 
