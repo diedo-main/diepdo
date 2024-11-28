@@ -9,6 +9,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import NoteCreationSection from "./NoteCreationSection";
 import NoteList from "./NoteList";
 import NoteSearch from "./NoteSearch";
+import CalendarView from "./CalendarView";
 import { useNoteSearch } from "@/hooks/useNoteSearch";
 
 const MainContent = () => {
@@ -124,35 +125,42 @@ const MainContent = () => {
   return (
     <div className="p-8 animate-fade-in">
       <div className="max-w-5xl mx-auto">
-        <NoteCreationSection
-          onSave={handleSave}
-          editingNoteId={editingNoteId}
-          onCancel={() => setEditingNoteId(null)}
-        />
-
-        <NoteSearch
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-
-        {notesQuery.status === "error" ? (
-          <div className="text-center text-red-500">
-            Error loading notes: {notesQuery.error instanceof Error ? notesQuery.error.message : "Unknown error"}
-          </div>
-        ) : (
-          <>
-            <NoteList
-              notes={filteredNotes}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isLoading={notesQuery.status === "pending"}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2">
+            <NoteCreationSection
+              onSave={handleSave}
+              editingNoteId={editingNoteId}
+              onCancel={() => setEditingNoteId(null)}
             />
-            <div ref={ref} className="h-8" />
-            {notesQuery.isFetchingNextPage && (
-              <div className="text-center mt-4">Loading more notes...</div>
+
+            <NoteSearch
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+
+            {notesQuery.status === "error" ? (
+              <div className="text-center text-red-500">
+                Error loading notes: {notesQuery.error instanceof Error ? notesQuery.error.message : "Unknown error"}
+              </div>
+            ) : (
+              <>
+                <NoteList
+                  notes={filteredNotes}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  isLoading={notesQuery.status === "pending"}
+                />
+                <div ref={ref} className="h-8" />
+                {notesQuery.isFetchingNextPage && (
+                  <div className="text-center mt-4">Loading more notes...</div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+          <div className="md:col-span-1">
+            <CalendarView />
+          </div>
+        </div>
       </div>
     </div>
   );
