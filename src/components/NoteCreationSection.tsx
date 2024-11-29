@@ -75,7 +75,7 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
           <div>
             <Input
               type="text"
-              placeholder="Enter note title..."
+              placeholder="📕 Tiêu đề là ..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="text-lg font-medium border-none bg-transparent px-0 focus-visible:ring-0 placeholder:text-muted-foreground/60"
@@ -85,7 +85,7 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
             <MarkdownEditor
               value={content}
               onChange={setContent}
-              placeholder="Write your note content here..."
+              placeholder="Bạn đang nghĩ gì? 😌 ..."
             />
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t">
