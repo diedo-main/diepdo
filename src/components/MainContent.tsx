@@ -126,16 +126,12 @@ const MainContent = () => {
     <div className="p-4 sm:p-6 md:p-8 animate-fade-in">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          {/* Main content area */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <NoteCreationSection
               onSave={handleSave}
               editingNoteId={editingNoteId}
               onCancel={() => setEditingNoteId(null)}
-            />
-
-            <NoteSearch
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
             />
 
             {notesQuery.status === "error" ? (
@@ -157,8 +153,16 @@ const MainContent = () => {
               </>
             )}
           </div>
-          <div className="lg:col-span-1">
-            <CalendarView />
+
+          {/* Sidebar with search and calendar */}
+          <div className="lg:col-span-1 space-y-4">
+            <NoteSearch
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+            <div className="hidden lg:block">
+              <CalendarView />
+            </div>
           </div>
         </div>
       </div>
