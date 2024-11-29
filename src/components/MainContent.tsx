@@ -107,12 +107,12 @@ const MainContent = () => {
   };
 
   if (authLoading) {
-    return <div className="p-8 text-center">Loading...</div>;
+    return <div className="p-4 text-center">Loading...</div>;
   }
 
   if (!session) {
     return (
-      <div className="max-w-md mx-auto p-8">
+      <div className="max-w-md mx-auto p-4 sm:p-6 md:p-8">
         <Auth 
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
@@ -123,10 +123,10 @@ const MainContent = () => {
   }
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
+    <div className="p-4 sm:p-6 md:p-8 animate-fade-in">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <NoteCreationSection
               onSave={handleSave}
               editingNoteId={editingNoteId}
@@ -157,7 +157,7 @@ const MainContent = () => {
               </>
             )}
           </div>
-          <div className="md:col-span-1">
+          <div className="lg:col-span-1">
             <CalendarView />
           </div>
         </div>
