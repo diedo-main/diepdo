@@ -18,7 +18,6 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
   const { toast } = useToast();
   const { notesQuery } = useNotes();
 
-  // Effect to populate form when editing
   useEffect(() => {
     if (editingNoteId && notesQuery.data) {
       const noteToEdit = notesQuery.data.pages
@@ -31,7 +30,6 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
         setContent(noteToEdit.content || "");
       }
     } else {
-      // Reset form when not editing
       setTitle("");
       setContent("");
     }
@@ -71,36 +69,45 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-      <Input
-        type="text"
-        placeholder="Note title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <MarkdownEditor
-        value={content}
-        onChange={setContent}
-        placeholder="Write your note content here..."
-      />
-      <div className="flex justify-end gap-2">
-        {editingNoteId && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting
-            ? "Saving..."
-            : editingNoteId
-            ? "Update Note"
-            : "Create Note"}
-        </Button>
+    <form onSubmit={handleSubmit} className="space-y-6 mb-8">
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+        <div className="space-y-6">
+          <div>
+            <Input
+              type="text"
+              placeholder="Enter note title..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="text-lg font-medium border-none bg-transparent px-0 focus-visible:ring-0 placeholder:text-muted-foreground/60"
+            />
+          </div>
+          <div className="pt-2">
+            <MarkdownEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Write your note content here..."
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            {editingNoteId && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? "Saving..."
+                : editingNoteId
+                ? "Update Note"
+                : "Create Note"}
+            </Button>
+          </div>
+        </div>
       </div>
     </form>
   );
