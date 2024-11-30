@@ -7,7 +7,8 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
-import { format, utcToZonedTime } from "date-fns-tz";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github.css";
 import {
@@ -26,7 +27,7 @@ interface NoteListProps {
 
 const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
   const formatDate = (dateString: string) => {
-    const zonedDate = utcToZonedTime(new Date(dateString), 'Asia/Ho_Chi_Minh');
+    const zonedDate = toZonedTime(new Date(dateString), 'Asia/Ho_Chi_Minh');
     return format(zonedDate, "'Thg' M dd HH:mm");
   };
 

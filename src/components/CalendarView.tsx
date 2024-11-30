@@ -3,7 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNotes } from "@/hooks/useNotes";
 import { format } from "date-fns";
-import { utcToZonedTime } from "date-fns-tz";
+import { toZonedTime } from "date-fns-tz";
 
 const CalendarView = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -16,7 +16,7 @@ const CalendarView = () => {
       notesQuery.data.pages.forEach(page => {
         page.notes.forEach(note => {
           if (note.created_at) {
-            const zonedDate = utcToZonedTime(new Date(note.created_at), 'Asia/Ho_Chi_Minh');
+            const zonedDate = toZonedTime(new Date(note.created_at), 'Asia/Ho_Chi_Minh');
             const dateStr = format(zonedDate, 'yyyy-MM-dd');
             noteDates.add(dateStr);
           }
