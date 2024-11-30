@@ -1,33 +1,18 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNoteMutations } from "./useNoteMutations";
+import type { Note } from "@/types/note.types";
 
 const NOTES_PER_PAGE = 12;
 
-export interface Tag {
-  id: string;
-  name: string;
-}
-
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  pinned: boolean;
-  tags: Tag[];
-}
-
-export interface UpdateNoteInput {
-  id: string;
-  title: string;
-  content: string;
-  tags: Tag[];
-}
+export type { Note } from "@/types/note.types";
+export type { Tag } from "@/types/note.types";
+export type { UpdateNoteInput } from "@/types/note.types";
 
 export function useNotes() {
   const { session } = useAuth();
-  const queryClient = useQueryClient();
+  const mutations = useNoteMutations();
 
   const fetchNotes = async ({ pageParam = 0 }) => {
     if (!session?.user) throw new Error("Not authenticated");
@@ -75,133 +60,8 @@ export function useNotes() {
     enabled: !!session?.user,
   });
 
-  const togglePin = useMutation({
-    mutationFn: async (noteId: string) => {
-      if (!session?.user) throw new Error("Not authenticated");
-
-      // First, get the current pinned status
-      const { data: currentNote, error: fetchError } = await supabase
-        .from("notes")
-        .select("pinned")
-        .eq('id', noteId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Toggle the pinned status
-      const { error: updateError } = await supabase
-        .from("notes")
-        .update({ pinned: !currentNote.pinned })
-        .eq('id', noteId)
-        .eq('user_id', session.user.id);
-
-      if (updateError) throw updateError;
-
-      return { id: noteId, pinned: !currentNote.pinned };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
-  const createNote = useMutation({
-    mutationFn: async (note: Omit<Note, 'id' | 'created_at' | 'pinned'>) => {
-      if (!session?.user) throw new Error("Not authenticated");
-
-      const { data: noteData, error: noteError } = await supabase
-        .from("notes")
-        .insert({
-          title: note.title,
-          content: note.content,
-          user_id: session.user.id,
-        })
-        .select()
-        .single();
-
-      if (noteError) throw noteError;
-
-      if (note.tags.length > 0) {
-        const noteTags = note.tags.map((tag) => ({
-          note_id: noteData.id,
-          tag_id: tag.id,
-        }));
-
-        const { error: tagError } = await supabase
-          .from("notes_tags")
-          .insert(noteTags);
-
-        if (tagError) throw tagError;
-      }
-
-      return noteData;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
-  const updateNote = useMutation({
-    mutationFn: async (note: UpdateNoteInput) => {
-      if (!session?.user) throw new Error("Not authenticated");
-
-      const { error: noteError } = await supabase
-        .from("notes")
-        .update({
-          title: note.title,
-          content: note.content,
-        })
-        .eq('id', note.id)
-        .eq('user_id', session.user.id);
-
-      if (noteError) throw noteError;
-
-      const { error: deleteTagsError } = await supabase
-        .from("notes_tags")
-        .delete()
-        .eq('note_id', note.id);
-
-      if (deleteTagsError) throw deleteTagsError;
-
-      if (note.tags.length > 0) {
-        const noteTags = note.tags.map((tag) => ({
-          note_id: note.id,
-          tag_id: tag.id,
-        }));
-
-        const { error: tagError } = await supabase
-          .from("notes_tags")
-          .insert(noteTags);
-
-        if (tagError) throw tagError;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
-  const deleteNote = useMutation({
-    mutationFn: async (noteId: string) => {
-      if (!session?.user) throw new Error("Not authenticated");
-
-      const { error } = await supabase
-        .from("notes")
-        .delete()
-        .eq('id', noteId)
-        .eq('user_id', session.user.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
   return {
     notesQuery,
-    createNote,
-    updateNote,
-    deleteNote,
-    togglePin,
+    ...mutations,
   };
 }
