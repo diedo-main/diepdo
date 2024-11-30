@@ -1,7 +1,7 @@
 import { Note } from "@/hooks/useNotes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bookmark, MoreVertical, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
