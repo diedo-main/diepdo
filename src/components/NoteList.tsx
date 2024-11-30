@@ -1,7 +1,7 @@
 import { Note } from "@/hooks/useNotes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bookmark, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Bookmark, MoreVertical, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -17,6 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { useNotes } from "@/hooks/useNotes";
 
 interface NoteListProps {
   notes: Note[];
@@ -26,9 +28,21 @@ interface NoteListProps {
 }
 
 const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
+  const { togglePin } = useNotes();
+  const [isPinning, setIsPinning] = useState<string | null>(null);
+
   const formatDate = (dateString: string) => {
     const zonedDate = toZonedTime(new Date(dateString), 'Asia/Ho_Chi_Minh');
     return format(zonedDate, "'Thg' M dd HH:mm");
+  };
+
+  const handleTogglePin = async (noteId: string) => {
+    setIsPinning(noteId);
+    try {
+      await togglePin.mutateAsync(noteId);
+    } finally {
+      setIsPinning(null);
+    }
   };
 
   if (isLoading) {
@@ -48,7 +62,9 @@ const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
       {notes.map((note) => (
         <div
           key={note.id}
-          className="group bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+          className={`group bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ${
+            note.pinned ? 'border-primary' : 'border-gray-100'
+          }`}
         >
           <div className="p-6">
             <div className="flex items-start justify-between mb-4">
@@ -60,6 +76,20 @@ const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
               </div>
               
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                  onClick={() => handleTogglePin(note.id)}
+                  disabled={isPinning === note.id}
+                >
+                  {note.pinned ? (
+                    <PinOff className="h-4 w-4" />
+                  ) : (
+                    <Pin className="h-4 w-4" />
+                  )}
+                </Button>
+                
                 <Button
                   variant="ghost"
                   size="icon"

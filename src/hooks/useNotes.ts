@@ -14,6 +14,7 @@ export interface Note {
   title: string;
   content: string;
   created_at: string;
+  pinned: boolean;
   tags: Tag[];
 }
 
@@ -38,6 +39,7 @@ export function useNotes() {
         title,
         content,
         created_at,
+        pinned,
         notes_tags(
           tag_id,
           tags(
@@ -47,8 +49,9 @@ export function useNotes() {
         )
       `, { count: 'exact' })
       .eq('user_id', session.user.id)
-      .range(pageParam * NOTES_PER_PAGE, (pageParam + 1) * NOTES_PER_PAGE - 1)
-      .order('created_at', { ascending: false });
+      .order('pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(pageParam * NOTES_PER_PAGE, (pageParam + 1) * NOTES_PER_PAGE - 1);
 
     if (error) throw error;
 
@@ -72,8 +75,37 @@ export function useNotes() {
     enabled: !!session?.user,
   });
 
+  const togglePin = useMutation({
+    mutationFn: async (noteId: string) => {
+      if (!session?.user) throw new Error("Not authenticated");
+
+      // First, get the current pinned status
+      const { data: currentNote, error: fetchError } = await supabase
+        .from("notes")
+        .select("pinned")
+        .eq('id', noteId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Toggle the pinned status
+      const { error: updateError } = await supabase
+        .from("notes")
+        .update({ pinned: !currentNote.pinned })
+        .eq('id', noteId)
+        .eq('user_id', session.user.id);
+
+      if (updateError) throw updateError;
+
+      return { id: noteId, pinned: !currentNote.pinned };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
+  });
+
   const createNote = useMutation({
-    mutationFn: async (note: Omit<Note, 'id' | 'created_at'>) => {
+    mutationFn: async (note: Omit<Note, 'id' | 'created_at' | 'pinned'>) => {
       if (!session?.user) throw new Error("Not authenticated");
 
       const { data: noteData, error: noteError } = await supabase
@@ -170,5 +202,6 @@ export function useNotes() {
     createNote,
     updateNote,
     deleteNote,
+    togglePin,
   };
 }
