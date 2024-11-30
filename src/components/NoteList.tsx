@@ -90,14 +90,6 @@ const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
                   )}
                 </Button>
                 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-500 hover:text-gray-700"
-                >
-                  <Bookmark className="h-4 w-4" />
-                </Button>
-                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
