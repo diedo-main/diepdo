@@ -3,6 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNotes } from "@/hooks/useNotes";
 import { format } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 
 const CalendarView = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -15,7 +16,8 @@ const CalendarView = () => {
       notesQuery.data.pages.forEach(page => {
         page.notes.forEach(note => {
           if (note.created_at) {
-            const dateStr = format(new Date(note.created_at), 'yyyy-MM-dd');
+            const zonedDate = utcToZonedTime(new Date(note.created_at), 'Asia/Ho_Chi_Minh');
+            const dateStr = format(zonedDate, 'yyyy-MM-dd');
             noteDates.add(dateStr);
           }
         });
@@ -34,18 +36,22 @@ const CalendarView = () => {
 
   const modifiersStyles = {
     hasNotes: {
-      backgroundColor: '#00BFA5', // Teal color for days with notes
+      backgroundColor: '#00BFA5',
       color: 'white',
       fontWeight: 'bold',
       borderRadius: '50%',
     },
   };
 
+  const formatVietnameseMonth = (date: Date) => {
+    return `Tháng ${format(date, 'MM yyyy')}`;
+  };
+
   return (
     <Card className="w-full max-w-sm mx-auto bg-white shadow-sm border border-gray-100">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-medium text-gray-900">
-          {format(date || new Date(), 'MMMM yyyy')}
+          {formatVietnameseMonth(date || new Date())}
         </CardTitle>
       </CardHeader>
       <CardContent>

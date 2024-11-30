@@ -7,7 +7,7 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
-import { format } from "date-fns";
+import { format, utcToZonedTime } from "date-fns-tz";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github.css";
 import {
@@ -25,6 +25,11 @@ interface NoteListProps {
 }
 
 const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
+  const formatDate = (dateString: string) => {
+    const zonedDate = utcToZonedTime(new Date(dateString), 'Asia/Ho_Chi_Minh');
+    return format(zonedDate, "'Thg' M dd HH:mm");
+  };
+
   if (isLoading) {
     return <div className="text-center py-8 text-muted-foreground">Loading notes...</div>;
   }
@@ -49,7 +54,7 @@ const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
               <div className="flex items-center gap-3">
                 <h2 className="text-lg font-semibold text-gray-900">{note.title}</h2>
                 <span className="text-sm text-muted-foreground">
-                  {format(new Date(note.created_at), "MMM d, yyyy")}
+                  {formatDate(note.created_at)}
                 </span>
               </div>
               
