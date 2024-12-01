@@ -115,8 +115,20 @@ const MainContent = () => {
       <div className="max-w-md mx-auto p-4 sm:p-6 md:p-8">
         <Auth 
           supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
+          appearance={{ 
+            theme: ThemeSupa,
+            variables: {
+              default: {
+                colors: {
+                  brand: '#2563eb',
+                  brandAccent: '#1d4ed8',
+                }
+              }
+            }
+          }}
           theme="light"
+          providers={[]}
+          view="sign_in"
         />
       </div>
     );
