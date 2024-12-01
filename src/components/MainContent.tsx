@@ -107,7 +107,7 @@ const MainContent = () => {
   };
 
   if (authLoading) {
-    return <div className="p-4 text-center">Loading...</div>;
+    return <div className="p-4 text-center">Đang tải...</div>;
   }
 
   if (!session) {
@@ -129,6 +129,28 @@ const MainContent = () => {
           theme="light"
           providers={[]}
           view="sign_in"
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: "Email",
+                password_label: "Mật khẩu",
+                email_input_placeholder: "Địa chỉ email của bạn",
+                password_input_placeholder: "Mật khẩu của bạn",
+                button_label: "Đăng nhập",
+                loading_button_label: "Đang đăng nhập ...",
+                link_text: "Đã có tài khoản? Đăng nhập",
+              },
+              sign_up: {
+                email_label: "Email",
+                password_label: "Mật khẩu",
+                email_input_placeholder: "Địa chỉ email của bạn",
+                password_input_placeholder: "Mật khẩu của bạn",
+                button_label: "Đăng ký",
+                loading_button_label: "Đang đăng ký ...",
+                link_text: "Chưa có tài khoản? Đăng ký",
+              },
+            },
+          }}
         />
       </div>
     );

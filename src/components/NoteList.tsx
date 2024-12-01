@@ -46,13 +46,13 @@ const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading notes...</div>;
+    return <div className="text-center py-8 text-muted-foreground">Đang tải ghi chú...</div>;
   }
 
   if (!notes.length) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No notes yet. Create your first note above!
+        Chưa có ghi chú nào. Hãy tạo ghi chú đầu tiên của bạn!
       </div>
     );
   }
@@ -103,14 +103,14 @@ const NoteList = ({ notes, onEdit, onDelete, isLoading }: NoteListProps) => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onEdit(note)}>
                       <Pencil className="h-4 w-4 mr-2" />
-                      Edit
+                      Chỉnh sửa
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onDelete(note.id)}
                       className="text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      Xóa
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

@@ -40,7 +40,7 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
     
     if (!title.trim()) {
       toast({
-        title: "Title is required",
+        title: "Vui lòng nhập tiêu đề",
         variant: "destructive",
       });
       return;
@@ -54,13 +54,13 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
         setContent("");
       }
       toast({
-        title: `Note ${editingNoteId ? "updated" : "created"} successfully`,
+        title: `Ghi chú đã được ${editingNoteId ? "cập nhật" : "tạo"} thành công`,
       });
     } catch (error) {
-      console.error("Error saving note:", error);
+      console.error("Lỗi khi lưu ghi chú:", error);
       toast({
-        title: `Failed to ${editingNoteId ? "update" : "create"} note`,
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        title: `Không thể ${editingNoteId ? "cập nhật" : "tạo"} ghi chú`,
+        description: error instanceof Error ? error.message : "Đã xảy ra lỗi không mong muốn",
         variant: "destructive",
       });
     } finally {
@@ -96,15 +96,15 @@ const NoteCreationSection = ({ onSave, editingNoteId, onCancel }: NoteCreationSe
                 onClick={onCancel}
                 disabled={isSubmitting}
               >
-                Cancel
+                Hủy
               </Button>
             )}
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
-                ? "Saving..."
+                ? "Đang lưu..."
                 : editingNoteId
-                ? "Update Note"
-                : "Create Note"}
+                ? "Cập nhật ghi chú"
+                : "Tạo ghi chú"}
             </Button>
           </div>
         </div>
