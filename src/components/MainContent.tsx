@@ -11,10 +11,13 @@ import NoteList from "./NoteList";
 import NoteSearch from "./NoteSearch";
 import CalendarView from "./CalendarView";
 import { useNoteSearch } from "@/hooks/useNoteSearch";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 const MainContent = () => {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
   const { ref, inView } = useInView();
   const { session, loading: authLoading } = useAuth();
@@ -22,7 +25,18 @@ const MainContent = () => {
   const { notesQuery, createNote, updateNote, deleteNote } = useNotes();
 
   const allNotes = notesQuery.data?.pages.flatMap(page => page.notes) || [];
-  const filteredNotes = useNoteSearch(allNotes, searchQuery);
+  const searchFilteredNotes = useNoteSearch(allNotes, searchQuery);
+  
+  // Filter notes by selected date
+  const filteredNotes = searchFilteredNotes.filter(note => {
+    if (!selectedDate) return true;
+    
+    const noteDate = toZonedTime(new Date(note.created_at), 'Asia/Ho_Chi_Minh');
+    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+    const noteDateStr = format(noteDate, 'yyyy-MM-dd');
+    
+    return selectedDateStr === noteDateStr;
+  });
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -106,6 +120,16 @@ const MainContent = () => {
     }
   };
 
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      const formattedDate = format(date, 'dd/MM/yyyy');
+      toast({
+        title: `Hiển thị ghi chú ngày ${formattedDate}`,
+      });
+    }
+  };
+
   if (authLoading) {
     return <div className="p-4 text-center">Đang tải...</div>;
   }
@@ -178,7 +202,7 @@ const MainContent = () => {
 
             {notesQuery.status === "error" ? (
               <div className="text-center text-red-500">
-                Error loading notes: {notesQuery.error instanceof Error ? notesQuery.error.message : "Unknown error"}
+                Lỗi khi tải ghi chú: {notesQuery.error instanceof Error ? notesQuery.error.message : "Lỗi không xác định"}
               </div>
             ) : (
               <>
@@ -190,7 +214,7 @@ const MainContent = () => {
                 />
                 <div ref={ref} className="h-8" />
                 {notesQuery.isFetchingNextPage && (
-                  <div className="text-center mt-4">Loading more notes...</div>
+                  <div className="text-center mt-4">Đang tải thêm ghi chú...</div>
                 )}
               </>
             )}
@@ -202,7 +226,7 @@ const MainContent = () => {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
             />
-            <CalendarView />
+            <CalendarView onDateSelect={handleDateSelect} />
           </div>
         </div>
       </div>

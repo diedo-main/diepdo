@@ -5,7 +5,11 @@ import { useNotes } from "@/hooks/useNotes";
 import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
-const CalendarView = () => {
+interface CalendarViewProps {
+  onDateSelect: (date: Date | undefined) => void;
+}
+
+const CalendarView = ({ onDateSelect }: CalendarViewProps) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [daysWithNotes, setDaysWithNotes] = useState<Set<string>>(new Set());
   const { notesQuery } = useNotes();
@@ -22,10 +26,15 @@ const CalendarView = () => {
           }
         });
       });
-      console.log('Days with notes:', Array.from(noteDates));
+      console.log('Ngày có ghi chú:', Array.from(noteDates));
       setDaysWithNotes(noteDates);
     }
   }, [notesQuery.data]);
+
+  const handleDateSelect = (newDate: Date | undefined) => {
+    setDate(newDate);
+    onDateSelect(newDate);
+  };
 
   const modifiers = {
     hasNotes: (date: Date) => {
@@ -58,7 +67,7 @@ const CalendarView = () => {
         <Calendar
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={handleDateSelect}
           className="rounded-md"
           modifiers={modifiers}
           modifiersStyles={modifiersStyles}
